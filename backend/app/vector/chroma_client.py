@@ -21,11 +21,15 @@ class ChromaVectorStore:
         if self._collection is None:
             try:
                 import chromadb
+                from chromadb.config import Settings as ChromaSettings
             except ImportError as exc:
                 raise VectorStoreError("chromadb is not installed.") from exc
 
             Path(self.persist_dir).mkdir(parents=True, exist_ok=True)
-            self._client = chromadb.PersistentClient(path=self.persist_dir)
+            self._client = chromadb.PersistentClient(
+                path=self.persist_dir,
+                settings=ChromaSettings(anonymized_telemetry=False),
+            )
             self._collection = self._client.get_or_create_collection(name=self.collection_name)
         return self._collection
 
@@ -106,4 +110,3 @@ def delete_by_knowledge_base_id(knowledge_base_id: int) -> None:
 
 def query_chunks(query_embedding: list[float], knowledge_base_id: int, top_k: int) -> dict[str, Any]:
     return get_vector_store().query_chunks(query_embedding, knowledge_base_id, top_k)
-

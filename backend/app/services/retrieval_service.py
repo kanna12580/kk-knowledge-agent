@@ -63,7 +63,9 @@ def _distance_to_score(distance: Any) -> float:
         numeric_distance = float(distance)
     except (TypeError, ValueError):
         return 0.0
-    return max(0.0, min(1.0, 1.0 - numeric_distance))
+    if numeric_distance < 0:
+        return 0.0
+    return round(1.0 / (1.0 + numeric_distance), 4)
 
 
 def _optional_int(value: Any) -> int | None:
@@ -73,4 +75,3 @@ def _optional_int(value: Any) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
-

@@ -132,3 +132,33 @@
 - 实现文本上传和 txt 上传。
 - 实现搜索框和流式结果展示。
 - 使用 `fetch + ReadableStream` 处理 POST SSE。
+
+## 2026-06-09 - Pre-Phase 5 Real Backend Validation
+
+状态：已完成。
+
+内容：
+- 安装完整 `backend/requirements.txt`。
+- 下载并加载真实 embedding 模型：`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`。
+- 新增真实后端联调脚本：`backend/scripts/validate_real_backend.py`。
+- 脚本使用临时 SQLite 和临时 Chroma 目录，不污染本地正式数据。
+- 通过 FastAPI endpoints 创建知识库、上传《春》《故乡》片段，并执行真实语义搜索。
+- 将 `posthog` pin 到 `<6.0`，避免 `chromadb 0.6.x` 与新版 `posthog 7.x` 的 telemetry 兼容报错。
+- 将搜索分数从 `1 - distance` 调整为 `1 / (1 + distance)`，避免真实 Chroma distance 大于 1 时分数被压成 0。
+
+验证：
+- 命令：`python -m pytest`
+- 结果：`30 passed, 1 warning`
+- 命令：`python backend/scripts/validate_real_backend.py`
+- 结果：真实 Chroma 写入和搜索成功，脚本退出码为 0。
+
+真实搜索结果：
+- `春天` -> top result `春`
+- `花草` -> top result `春`
+- `少年闰土` -> top result `故乡`
+- `小孩子` -> top result `故乡`
+- `乡下少年` -> top result `故乡`
+
+遗留说明：
+- 当前唯一 warning 来源仍是 FastAPI/Starlette TestClient 关于 `httpx` 的提示，不影响真实后端能力。
+- 前端阶段可以基于当前后端 API 继续开发。

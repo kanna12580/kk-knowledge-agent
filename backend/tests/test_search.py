@@ -64,7 +64,7 @@ def test_search_success(client: TestClient, monkeypatch):
     assert len(data["results"]) == 2
     assert data["results"][0]["document_id"] == 2
     assert data["results"][0]["title"] == "春"
-    assert data["results"][0]["score"] == 0.88
+    assert data["results"][0]["score"] == 0.8929
 
 
 def test_search_empty_query_fails(client: TestClient):
@@ -140,4 +140,3 @@ def test_stream_search_retrieval_failure_yields_error_event(client: TestClient, 
     events = parse_sse_events(response.text)
     assert [event["type"] for event in events] == ["start", "error", "done"]
     assert events[1]["message"] == "Failed to search knowledge base."
-
