@@ -328,6 +328,28 @@ small,
   margin: 0 0 8px;
 }
 
+.pagination-bar {
+  align-items: center;
+  border-top: 1px solid #dfe5e1;
+  color: #66746d;
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 10px;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 10px 14px;
+}
+
+.pagination-bar span {
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .stream-placeholder,
 .empty-state {
   color: #7a8780;
@@ -405,5 +427,9 @@ small,
   .toolbar-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .pagination-bar {
+    gap: 8px;
   }
 }

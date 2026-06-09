@@ -1,4 +1,4 @@
-import { FileText, Loader2, Send, Trash2, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Loader2, Send, Trash2, Upload } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
 import type { KnowledgeBase, KnowledgeDocument } from "../api/types";
@@ -7,20 +7,25 @@ interface DocumentUploaderProps {
   selectedKnowledgeBase: KnowledgeBase | null;
   documents: KnowledgeDocument[];
   loading: boolean;
+  pagination: { page: number; pageSize: number; total: number };
   onUploadText: (payload: { title: string; content: string }) => Promise<void>;
   onUploadFile: (payload: { title: string; file: File }) => Promise<void>;
   onDeleteDocument: (document: KnowledgeDocument) => Promise<void>;
+  onPageChange: (page: number) => Promise<void>;
 }
 
 export function DocumentUploader({
   selectedKnowledgeBase,
   documents,
   loading,
+  pagination,
   onUploadText,
   onUploadFile,
   onDeleteDocument,
+  onPageChange,
 }: DocumentUploaderProps) {
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
 
   async function handleTextSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -107,6 +112,30 @@ export function DocumentUploader({
             </article>
           ))
         )}
+      </div>
+
+      <div className="pagination-bar">
+        <button
+          className="icon-button"
+          type="button"
+          onClick={() => void onPageChange(pagination.page - 1)}
+          title="Previous page"
+          disabled={disabled || pagination.page <= 1}
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <span>
+          Page {pagination.page} / {totalPages} · {pagination.total} total
+        </span>
+        <button
+          className="icon-button"
+          type="button"
+          onClick={() => void onPageChange(pagination.page + 1)}
+          title="Next page"
+          disabled={disabled || pagination.page >= totalPages}
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
     </section>
   );

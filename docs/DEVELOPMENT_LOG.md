@@ -299,6 +299,27 @@
 - Codex 已可以通过本项目 MCP Server 查询本地知识库内容。
 - MCP Server -> Backend API -> SQLite/ChromaDB/Embedding 检索链路端到端可用。
 
+## 2026-06-09 - Frontend Lightweight Pagination
+
+状态：已完成。
+
+内容：
+- 前端知识库列表接入后端分页参数 `page/page_size`。
+- 前端文档列表接入后端分页参数 `page/page_size`。
+- 新增轻量分页 UI：上一页、下一页、当前页、总页数、总条数。
+- 创建知识库后回到知识库第 1 页并选中新建项。
+- 上传文本或 txt 文档后回到文档第 1 页。
+- 删除当前页最后一条数据时，自动回退到上一页。
+
+验证：
+- `npm run build` 通过。
+- 浏览器打开 `http://127.0.0.1:5173`，确认知识库和文档面板底部分页条可见。
+- 页面布局检查：两个 `.pagination-bar` 均可见，宽高正常。
+
+说明：
+- 该分页 UI 保持 Demo 轻量，不引入复杂表格或后台菜单。
+- 后续如数据量增大，可继续扩展为可配置 page size 或跳转页码。
+
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 
 状态：已完成。

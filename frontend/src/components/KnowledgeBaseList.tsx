@@ -1,4 +1,4 @@
-import { Database, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Database, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import type { KnowledgeBase } from "../api/types";
@@ -7,8 +7,10 @@ interface KnowledgeBaseListProps {
   knowledgeBases: KnowledgeBase[];
   selectedId: number | null;
   loading: boolean;
+  pagination: { page: number; pageSize: number; total: number };
   onCreate: (payload: { name: string; description: string }) => Promise<void>;
   onDelete: (knowledgeBase: KnowledgeBase) => Promise<void>;
+  onPageChange: (page: number) => Promise<void>;
   onRefresh: () => Promise<void>;
   onSelect: (knowledgeBase: KnowledgeBase) => void;
 }
@@ -17,12 +19,15 @@ export function KnowledgeBaseList({
   knowledgeBases,
   selectedId,
   loading,
+  pagination,
   onCreate,
   onDelete,
+  onPageChange,
   onRefresh,
   onSelect,
 }: KnowledgeBaseListProps) {
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,6 +107,30 @@ export function KnowledgeBaseList({
             </div>
           ))
         )}
+      </div>
+
+      <div className="pagination-bar">
+        <button
+          className="icon-button"
+          type="button"
+          onClick={() => void onPageChange(pagination.page - 1)}
+          title="Previous page"
+          disabled={loading || pagination.page <= 1}
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <span>
+          Page {pagination.page} / {totalPages} · {pagination.total} total
+        </span>
+        <button
+          className="icon-button"
+          type="button"
+          onClick={() => void onPageChange(pagination.page + 1)}
+          title="Next page"
+          disabled={loading || pagination.page >= totalPages}
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
     </section>
   );

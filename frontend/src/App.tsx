@@ -9,11 +9,25 @@ import { DocumentUploader } from "./components/DocumentUploader";
 import { SearchPanel } from "./components/SearchPanel";
 
 type Notice = { type: "success" | "error"; message: string } | null;
+type Pagination = { page: number; pageSize: number; total: number };
+
+const KNOWLEDGE_PAGE_SIZE = 10;
+const DOCUMENT_PAGE_SIZE = 10;
 
 export default function App() {
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState<KnowledgeBase | null>(null);
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
+  const [knowledgePagination, setKnowledgePagination] = useState<Pagination>({
+    page: 1,
+    pageSize: KNOWLEDGE_PAGE_SIZE,
+    total: 0,
+  });
+  const [documentPagination, setDocumentPagination] = useState<Pagination>({
+    page: 1,
+    pageSize: DOCUMENT_PAGE_SIZE,
+    total: 0,
+  });
   const [results, setResults] = useState<SearchResult[]>([]);
   const [streamLines, setStreamLines] = useState<string[]>([]);
   const [notice, setNotice] = useState<Notice>(null);
@@ -31,11 +45,12 @@ export default function App() {
     }
   }, []);
 
-  const refreshKnowledgeBases = useCallback(async () => {
+  const refreshKnowledgeBases = useCallback(async (pageNumber = 1) => {
     setLoadingKnowledge(true);
     try {
-      const page = await listKnowledgeBases();
+      const page = await listKnowledgeBases(pageNumber, KNOWLEDGE_PAGE_SIZE);
       setKnowledgeBases(page.items);
+      setKnowledgePagination({ page: page.page, pageSize: page.page_size, total: page.total });
       setSelectedKnowledgeBase((current) => {
         if (current && page.items.some((item) => item.id === current.id)) {
           return current;
@@ -50,11 +65,12 @@ export default function App() {
   }, [showNotice]);
 
   const refreshDocuments = useCallback(
-    async (knowledgeBaseId: number) => {
+    async (knowledgeBaseId: number, pageNumber = 1) => {
       setLoadingDocuments(true);
       try {
-        const page = await listDocuments(knowledgeBaseId);
+        const page = await listDocuments(knowledgeBaseId, pageNumber, DOCUMENT_PAGE_SIZE);
         setDocuments(page.items);
+        setDocumentPagination({ page: page.page, pageSize: page.page_size, total: page.total });
       } catch (error) {
         showNotice({ type: "error", message: error instanceof Error ? error.message : "文档加载失败" });
       } finally {
@@ -71,9 +87,11 @@ export default function App() {
   useEffect(() => {
     if (!selectedId) {
       setDocuments([]);
+      setDocumentPagination({ page: 1, pageSize: DOCUMENT_PAGE_SIZE, total: 0 });
       return;
     }
-    void refreshDocuments(selectedId);
+    setDocumentPagination((current) => ({ ...current, page: 1 }));
+    void refreshDocuments(selectedId, 1);
   }, [refreshDocuments, selectedId]);
 
   const selectedName = useMemo(() => selectedKnowledgeBase?.name ?? "未选择知识库", [selectedKnowledgeBase]);
@@ -81,7 +99,8 @@ export default function App() {
   async function handleCreateKnowledgeBase(payload: { name: string; description: string }) {
     try {
       const created = await createKnowledgeBase(payload);
-      setKnowledgeBases((current) => [created, ...current]);
+      setKnowledgePagination((current) => ({ ...current, page: 1 }));
+      await refreshKnowledgeBases(1);
       setSelectedKnowledgeBase(created);
       showNotice({ type: "success", message: "知识库已创建" });
     } catch (error) {
@@ -93,21 +112,16 @@ export default function App() {
     setLoadingKnowledge(true);
     try {
       await deleteKnowledgeBase(knowledgeBase.id);
-      setKnowledgeBases((current) => {
-        const next = current.filter((item) => item.id !== knowledgeBase.id);
-        setSelectedKnowledgeBase((selected) => {
-          if (selected?.id !== knowledgeBase.id) {
-            return selected;
-          }
-          return next[0] ?? null;
-        });
-        return next;
-      });
+      const nextPage =
+        knowledgeBases.length === 1 && knowledgePagination.page > 1
+          ? knowledgePagination.page - 1
+          : knowledgePagination.page;
       if (selectedKnowledgeBase?.id === knowledgeBase.id) {
         setDocuments([]);
         setResults([]);
         setStreamLines([]);
       }
+      await refreshKnowledgeBases(nextPage);
       showNotice({ type: "success", message: "知识库已删除" });
     } catch (error) {
       showNotice({ type: "error", message: error instanceof Error ? error.message : "删除失败" });
@@ -122,8 +136,9 @@ export default function App() {
     }
     setLoadingDocuments(true);
     try {
-      const created = await uploadTextDocument(selectedKnowledgeBase.id, payload);
-      setDocuments((current) => [created, ...current]);
+      await uploadTextDocument(selectedKnowledgeBase.id, payload);
+      setDocumentPagination((current) => ({ ...current, page: 1 }));
+      await refreshDocuments(selectedKnowledgeBase.id, 1);
       showNotice({ type: "success", message: "文本已上传" });
     } catch (error) {
       showNotice({ type: "error", message: error instanceof Error ? error.message : "上传失败" });
@@ -138,8 +153,9 @@ export default function App() {
     }
     setLoadingDocuments(true);
     try {
-      const created = await uploadTxtDocument(selectedKnowledgeBase.id, payload.title, payload.file);
-      setDocuments((current) => [created, ...current]);
+      await uploadTxtDocument(selectedKnowledgeBase.id, payload.title, payload.file);
+      setDocumentPagination((current) => ({ ...current, page: 1 }));
+      await refreshDocuments(selectedKnowledgeBase.id, 1);
       showNotice({ type: "success", message: "文件已上传" });
     } catch (error) {
       showNotice({ type: "error", message: error instanceof Error ? error.message : "上传失败" });
@@ -152,7 +168,15 @@ export default function App() {
     setLoadingDocuments(true);
     try {
       await deleteDocument(document.id);
-      setDocuments((current) => current.filter((item) => item.id !== document.id));
+      const nextPage =
+        documents.length === 1 && documentPagination.page > 1
+          ? documentPagination.page - 1
+          : documentPagination.page;
+      if (selectedKnowledgeBase) {
+        await refreshDocuments(selectedKnowledgeBase.id, nextPage);
+      } else {
+        setDocuments((current) => current.filter((item) => item.id !== document.id));
+      }
       setResults((current) => current.filter((result) => result.document_id !== document.id));
       showNotice({ type: "success", message: "文档已删除" });
     } catch (error) {
@@ -238,18 +262,27 @@ export default function App() {
           knowledgeBases={knowledgeBases}
           selectedId={selectedId}
           loading={loadingKnowledge}
+          pagination={knowledgePagination}
           onCreate={handleCreateKnowledgeBase}
           onDelete={handleDeleteKnowledgeBase}
-          onRefresh={refreshKnowledgeBases}
+          onPageChange={refreshKnowledgeBases}
+          onRefresh={() => refreshKnowledgeBases(knowledgePagination.page)}
           onSelect={setSelectedKnowledgeBase}
         />
         <DocumentUploader
           selectedKnowledgeBase={selectedKnowledgeBase}
           documents={documents}
           loading={loadingDocuments}
+          pagination={documentPagination}
           onUploadText={handleUploadText}
           onUploadFile={handleUploadFile}
           onDeleteDocument={handleDeleteDocument}
+          onPageChange={(page) => {
+            if (!selectedKnowledgeBase) {
+              return Promise.resolve();
+            }
+            return refreshDocuments(selectedKnowledgeBase.id, page);
+          }}
         />
         <SearchPanel
           selectedKnowledgeBase={selectedKnowledgeBase}
