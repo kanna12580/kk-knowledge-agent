@@ -63,3 +63,59 @@ class KnowledgeBasePage(BaseModel):
     page: int
     page_size: int
 
+
+class TextDocumentCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    content: str = Field(min_length=1)
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Document title cannot be empty.")
+        return value
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Document content cannot be empty.")
+        return value
+
+
+class DocumentChunkRead(BaseModel):
+    id: int
+    document_id: int
+    knowledge_base_id: int
+    chunk_index: int
+    content: str
+    vector_id: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DocumentRead(BaseModel):
+    id: int
+    knowledge_base_id: int
+    title: str
+    source_type: str
+    file_name: str | None
+    content: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DocumentDetail(DocumentRead):
+    chunks: list[DocumentChunkRead]
+
+
+class DocumentPage(BaseModel):
+    items: list[DocumentRead]
+    total: int
+    page: int
+    page_size: int
