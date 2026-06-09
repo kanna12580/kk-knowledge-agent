@@ -152,6 +152,26 @@
 - 知识库创建后，`event.currentTarget` 在 await 后为空导致 form reset 控制台报错；已改为 await 前保存 form 引用。
 - 流式按钮最初没有触发流式搜索，因为 `FormData(form)` 不能可靠读取 submit button 的 intent；已改用 `SubmitEvent.submitter`。
 
+## 2026-06-09 - Frontend Delete Controls
+
+状态：已完成。
+
+内容：
+- 前端新增删除知识库能力，调用 `DELETE /api/knowledge-bases/{kb_id}`。
+- 前端新增删除文档能力，调用 `DELETE /api/documents/{document_id}`。
+- 删除操作使用行内二次确认：第一次点击垃圾桶进入确认态，第二次点击“确认”才执行删除。
+- 删除知识库后会刷新选择状态，并清空关联文档、搜索结果和流式输出。
+- 删除文档后会移除文档列表项，并清理当前搜索结果中对应文档的命中。
+
+验证：
+- 命令：`npm run build`
+- 结果：TypeScript 和 Vite build 通过。
+- 后端 DELETE 链路验证：临时文档和临时知识库删除成功。
+
+验证说明：
+- 浏览器会话在原生 confirm 验证时触发安全拦截，后续不再继续使用该会话硬测同一地址。
+- 已将前端原生 `window.confirm` 改为行内二次确认，避免浏览器弹窗阻塞演示和自动化验证。
+
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 
 状态：已完成。

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import { createKnowledgeBase, listKnowledgeBases } from "./api/knowledge";
-import { listDocuments, uploadTextDocument, uploadTxtDocument } from "./api/documents";
+import { createKnowledgeBase, deleteKnowledgeBase, listKnowledgeBases } from "./api/knowledge";
+import { deleteDocument, listDocuments, uploadTextDocument, uploadTxtDocument } from "./api/documents";
 import { searchKnowledgeBase, streamSearchKnowledgeBase } from "./api/search";
 import type { KnowledgeBase, KnowledgeDocument, SearchResult, StreamEvent } from "./api/types";
 import { KnowledgeBaseList } from "./components/KnowledgeBaseList";
@@ -89,6 +89,33 @@ export default function App() {
     }
   }
 
+  async function handleDeleteKnowledgeBase(knowledgeBase: KnowledgeBase) {
+    setLoadingKnowledge(true);
+    try {
+      await deleteKnowledgeBase(knowledgeBase.id);
+      setKnowledgeBases((current) => {
+        const next = current.filter((item) => item.id !== knowledgeBase.id);
+        setSelectedKnowledgeBase((selected) => {
+          if (selected?.id !== knowledgeBase.id) {
+            return selected;
+          }
+          return next[0] ?? null;
+        });
+        return next;
+      });
+      if (selectedKnowledgeBase?.id === knowledgeBase.id) {
+        setDocuments([]);
+        setResults([]);
+        setStreamLines([]);
+      }
+      showNotice({ type: "success", message: "知识库已删除" });
+    } catch (error) {
+      showNotice({ type: "error", message: error instanceof Error ? error.message : "删除失败" });
+    } finally {
+      setLoadingKnowledge(false);
+    }
+  }
+
   async function handleUploadText(payload: { title: string; content: string }) {
     if (!selectedKnowledgeBase) {
       return;
@@ -116,6 +143,20 @@ export default function App() {
       showNotice({ type: "success", message: "文件已上传" });
     } catch (error) {
       showNotice({ type: "error", message: error instanceof Error ? error.message : "上传失败" });
+    } finally {
+      setLoadingDocuments(false);
+    }
+  }
+
+  async function handleDeleteDocument(document: KnowledgeDocument) {
+    setLoadingDocuments(true);
+    try {
+      await deleteDocument(document.id);
+      setDocuments((current) => current.filter((item) => item.id !== document.id));
+      setResults((current) => current.filter((result) => result.document_id !== document.id));
+      showNotice({ type: "success", message: "文档已删除" });
+    } catch (error) {
+      showNotice({ type: "error", message: error instanceof Error ? error.message : "删除失败" });
     } finally {
       setLoadingDocuments(false);
     }
@@ -198,6 +239,7 @@ export default function App() {
           selectedId={selectedId}
           loading={loadingKnowledge}
           onCreate={handleCreateKnowledgeBase}
+          onDelete={handleDeleteKnowledgeBase}
           onRefresh={refreshKnowledgeBases}
           onSelect={setSelectedKnowledgeBase}
         />
@@ -207,6 +249,7 @@ export default function App() {
           loading={loadingDocuments}
           onUploadText={handleUploadText}
           onUploadFile={handleUploadFile}
+          onDeleteDocument={handleDeleteDocument}
         />
         <SearchPanel
           selectedKnowledgeBase={selectedKnowledgeBase}
@@ -221,4 +264,3 @@ export default function App() {
     </main>
   );
 }
-

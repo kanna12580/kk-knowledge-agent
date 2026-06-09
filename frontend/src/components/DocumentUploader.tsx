@@ -1,5 +1,6 @@
-import { FileText, Loader2, Send, Upload } from "lucide-react";
+import { FileText, Loader2, Send, Trash2, Upload } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
 import type { KnowledgeBase, KnowledgeDocument } from "../api/types";
 
 interface DocumentUploaderProps {
@@ -8,6 +9,7 @@ interface DocumentUploaderProps {
   loading: boolean;
   onUploadText: (payload: { title: string; content: string }) => Promise<void>;
   onUploadFile: (payload: { title: string; file: File }) => Promise<void>;
+  onDeleteDocument: (document: KnowledgeDocument) => Promise<void>;
 }
 
 export function DocumentUploader({
@@ -16,7 +18,10 @@ export function DocumentUploader({
   loading,
   onUploadText,
   onUploadFile,
+  onDeleteDocument,
 }: DocumentUploaderProps) {
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+
   async function handleTextSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -84,6 +89,21 @@ export function DocumentUploader({
                 <small>{document.source_type === "file" ? document.file_name : "text"}</small>
               </div>
               <span>{new Date(document.created_at).toLocaleDateString()}</span>
+              <button
+                className={`danger-icon-button ${pendingDeleteId === document.id ? "confirm" : ""}`}
+                type="button"
+                onClick={() => {
+                  if (pendingDeleteId === document.id) {
+                    void onDeleteDocument(document).finally(() => setPendingDeleteId(null));
+                    return;
+                  }
+                  setPendingDeleteId(document.id);
+                }}
+                title={pendingDeleteId === document.id ? "确认删除文档" : "删除文档"}
+                disabled={loading}
+              >
+                {pendingDeleteId === document.id ? <span>确认</span> : <Trash2 size={17} />}
+              </button>
             </article>
           ))
         )}
@@ -91,4 +111,3 @@ export function DocumentUploader({
     </section>
   );
 }
-

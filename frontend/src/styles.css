@@ -151,7 +151,8 @@ textarea:focus {
 .primary-button,
 .secondary-button,
 .file-button,
-.icon-button {
+.icon-button,
+.danger-icon-button {
   align-items: center;
   border-radius: 6px;
   display: inline-flex;
@@ -184,6 +185,23 @@ textarea:focus {
   width: 38px;
 }
 
+.danger-icon-button {
+  aspect-ratio: 1;
+  background: #fff7f5;
+  border: 1px solid #efc8bd;
+  color: #a6422a;
+  flex: 0 0 36px;
+  width: 36px;
+}
+
+.danger-icon-button.confirm {
+  aspect-ratio: auto;
+  background: #a6422a;
+  color: #ffffff;
+  font-size: 12px;
+  width: 52px;
+}
+
 .file-button input {
   display: none;
 }
@@ -207,15 +225,27 @@ textarea:focus {
   color: #1d2a24;
   display: grid;
   gap: 10px;
-  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 52px;
   min-height: 64px;
   padding: 11px;
-  text-align: left;
 }
 
 .kb-row.active {
   background: #e7f1ed;
   border-color: #2f7d68;
+}
+
+.row-main-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  min-width: 0;
+  padding: 0;
+  text-align: left;
 }
 
 .kb-row span,
@@ -245,9 +275,9 @@ small,
   background: #ffffff;
   border: 1px solid #dfe5e1;
   border-radius: 8px;
-  display: flex;
+  display: grid;
   gap: 12px;
-  justify-content: space-between;
+  grid-template-columns: minmax(0, 1fr) auto 52px;
   min-height: 58px;
   padding: 11px 12px;
 }
@@ -377,4 +407,3 @@ small,
     flex-direction: column;
   }
 }
-

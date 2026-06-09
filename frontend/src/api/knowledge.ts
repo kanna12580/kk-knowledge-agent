@@ -15,3 +15,8 @@ export function createKnowledgeBase(payload: {
   });
 }
 
+export function deleteKnowledgeBase(knowledgeBaseId: number): Promise<void> {
+  return requestJson<void>(`/api/knowledge-bases/${knowledgeBaseId}`, {
+    method: "DELETE",
+  });
+}

@@ -32,3 +32,8 @@ export function uploadTxtDocument(
   return requestForm<KnowledgeDocumentDetail>(`/api/knowledge-bases/${knowledgeBaseId}/documents/file`, formData);
 }
 
+export function deleteDocument(documentId: number): Promise<void> {
+  return requestJson<void>(`/api/documents/${documentId}`, {
+    method: "DELETE",
+  });
+}

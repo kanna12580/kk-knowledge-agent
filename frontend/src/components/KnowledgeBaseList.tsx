@@ -1,5 +1,6 @@
-import { Database, Loader2, Plus, RefreshCw } from "lucide-react";
+import { Database, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { FormEvent } from "react";
+import { useState } from "react";
 import type { KnowledgeBase } from "../api/types";
 
 interface KnowledgeBaseListProps {
@@ -7,6 +8,7 @@ interface KnowledgeBaseListProps {
   selectedId: number | null;
   loading: boolean;
   onCreate: (payload: { name: string; description: string }) => Promise<void>;
+  onDelete: (knowledgeBase: KnowledgeBase) => Promise<void>;
   onRefresh: () => Promise<void>;
   onSelect: (knowledgeBase: KnowledgeBase) => void;
 }
@@ -16,9 +18,12 @@ export function KnowledgeBaseList({
   selectedId,
   loading,
   onCreate,
+  onDelete,
   onRefresh,
   onSelect,
 }: KnowledgeBaseListProps) {
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -62,18 +67,39 @@ export function KnowledgeBaseList({
           <div className="empty-state">暂无知识库</div>
         ) : (
           knowledgeBases.map((item) => (
-            <button
+            <div
               className={`kb-row ${item.id === selectedId ? "active" : ""}`}
               key={item.id}
-              type="button"
-              onClick={() => onSelect(item)}
             >
-              <Database size={18} />
-              <span>
-                <strong>{item.name}</strong>
-                <small>{item.description || "无描述"}</small>
-              </span>
-            </button>
+              <button
+                className="row-main-button"
+                type="button"
+                onClick={() => {
+                  setPendingDeleteId(null);
+                  onSelect(item);
+                }}
+              >
+                <Database size={18} />
+                <span>
+                  <strong>{item.name}</strong>
+                  <small>{item.description || "无描述"}</small>
+                </span>
+              </button>
+              <button
+                className={`danger-icon-button ${pendingDeleteId === item.id ? "confirm" : ""}`}
+                type="button"
+                onClick={() => {
+                  if (pendingDeleteId === item.id) {
+                    void onDelete(item).finally(() => setPendingDeleteId(null));
+                    return;
+                  }
+                  setPendingDeleteId(item.id);
+                }}
+                title={pendingDeleteId === item.id ? "确认删除知识库" : "删除知识库"}
+              >
+                {pendingDeleteId === item.id ? <span>确认</span> : <Trash2 size={17} />}
+              </button>
+            </div>
           ))
         )}
       </div>
