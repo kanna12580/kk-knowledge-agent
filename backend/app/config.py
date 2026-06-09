@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = "./chroma"
     chroma_collection_name: str = "kk_knowledge_chunks"
     embedding_model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    vector_index_enabled: bool = True
     chunk_size: int = 500
     chunk_overlap: int = 80
     max_txt_file_bytes: int = 1_048_576
@@ -25,4 +26,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

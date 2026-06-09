@@ -1,9 +1,16 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db.models import Document, DocumentChunk, KnowledgeBase
 from app.db.schemas import TextDocumentCreate
+from app.services import embedding_service
 from app.services.chunk_service import split_text
+from app.vector import chroma_client
+
+
+class DocumentIndexingError(RuntimeError):
+    pass
 
 
 def create_text_document(db: Session, knowledge_base: KnowledgeBase, payload: TextDocumentCreate) -> Document:
@@ -54,6 +61,12 @@ def get_document(db: Session, document_id: int) -> Document | None:
 
 
 def delete_document(db: Session, document: Document) -> None:
+    if get_settings().vector_index_enabled:
+        try:
+            chroma_client.delete_by_document_id(document.id)
+        except Exception as exc:
+            raise DocumentIndexingError("Failed to delete document vectors.") from exc
+
     db.delete(document)
     db.commit()
 
@@ -80,17 +93,58 @@ def _create_document(
     db.add(document)
     db.flush()
 
+    chunk_models: list[DocumentChunk] = []
     for index, chunk in enumerate(chunks):
-        db.add(
-            DocumentChunk(
-                document_id=document.id,
-                knowledge_base_id=knowledge_base.id,
-                chunk_index=index,
-                content=chunk,
-            )
+        chunk_model = DocumentChunk(
+            document_id=document.id,
+            knowledge_base_id=knowledge_base.id,
+            chunk_index=index,
+            content=chunk,
         )
+        db.add(chunk_model)
+        chunk_models.append(chunk_model)
+
+    db.flush()
+
+    if get_settings().vector_index_enabled:
+        try:
+            _index_document_chunks(knowledge_base, document, chunk_models)
+        except Exception as exc:
+            db.rollback()
+            raise DocumentIndexingError("Failed to index document chunks.") from exc
 
     db.commit()
     db.refresh(document)
     return document
+
+
+def _index_document_chunks(
+    knowledge_base: KnowledgeBase,
+    document: Document,
+    chunks: list[DocumentChunk],
+) -> None:
+    chunk_texts = [chunk.content for chunk in chunks]
+    embeddings = embedding_service.embed_texts(chunk_texts)
+    vector_ids = [f"kb-{knowledge_base.id}:doc-{document.id}:chunk-{chunk.id}" for chunk in chunks]
+    metadatas = [
+        {
+            "knowledge_base_id": knowledge_base.id,
+            "document_id": document.id,
+            "chunk_id": chunk.id,
+            "chunk_index": chunk.chunk_index,
+            "title": document.title,
+            "source_type": document.source_type,
+        }
+        for chunk in chunks
+    ]
+
+    chroma_client.add_chunks(
+        vector_ids=vector_ids,
+        embeddings=embeddings,
+        documents=chunk_texts,
+        metadatas=metadatas,
+    )
+
+    for chunk, vector_id in zip(chunks, vector_ids, strict=True):
+        chunk.vector_id = vector_id
 

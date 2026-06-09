@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db.database import get_db
-from app.db.schemas import DocumentDetail, DocumentPage, DocumentRead, TextDocumentCreate
+from app.db.schemas import DocumentDetail, DocumentPage, TextDocumentCreate
 from app.services import document_service, knowledge_service
+from app.services.document_service import DocumentIndexingError
 
 
 router = APIRouter(tags=["documents"])
@@ -23,7 +24,10 @@ def create_text_document(
     knowledge_base = knowledge_service.get_knowledge_base(db, knowledge_base_id)
     if knowledge_base is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Knowledge base not found.")
-    return document_service.create_text_document(db, knowledge_base, payload)
+    try:
+        return document_service.create_text_document(db, knowledge_base, payload)
+    except DocumentIndexingError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 
 
 @router.post(
@@ -62,7 +66,10 @@ async def create_file_document(
     if not content:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Document content cannot be empty.")
 
-    return document_service.create_file_document(db, knowledge_base, title, content, file.filename)
+    try:
+        return document_service.create_file_document(db, knowledge_base, title, content, file.filename)
+    except DocumentIndexingError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 
 
 @router.get("/knowledge-bases/{knowledge_base_id}/documents", response_model=DocumentPage)
@@ -93,4 +100,7 @@ def delete_document(document_id: int, db: Session = Depends(get_db)):
     document = document_service.get_document(db, document_id)
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found.")
-    document_service.delete_document(db, document)
+    try:
+        document_service.delete_document(db, document)
+    except DocumentIndexingError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc

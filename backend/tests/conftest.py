@@ -5,12 +5,16 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.config import get_settings
 from app.db.database import Base, get_db
 from app.main import create_app
 
 
 @pytest.fixture()
-def client(tmp_path) -> Generator[TestClient, None, None]:
+def client(tmp_path, monkeypatch) -> Generator[TestClient, None, None]:
+    monkeypatch.setenv("VECTOR_INDEX_ENABLED", "false")
+    get_settings.cache_clear()
+
     database_url = f"sqlite:///{tmp_path / 'test.db'}"
     engine = create_engine(database_url, connect_args={"check_same_thread": False})
     TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
@@ -32,6 +36,7 @@ def client(tmp_path) -> Generator[TestClient, None, None]:
 
     app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=engine)
+    get_settings.cache_clear()
 
 
 def create_kb(client: TestClient, name: str = "现代文学", description: str = "朱自清和鲁迅文章") -> dict:
@@ -41,4 +46,3 @@ def create_kb(client: TestClient, name: str = "现代文学", description: str =
     )
     assert response.status_code == 201
     return response.json()
-

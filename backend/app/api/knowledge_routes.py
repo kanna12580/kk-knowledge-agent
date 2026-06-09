@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.schemas import KnowledgeBaseCreate, KnowledgeBasePage, KnowledgeBaseRead, KnowledgeBaseUpdate
 from app.services import knowledge_service
+from app.services.knowledge_service import KnowledgeBaseIndexingError
 
 
 router = APIRouter(prefix="/knowledge-bases", tags=["knowledge-bases"])
@@ -49,5 +50,7 @@ def delete_knowledge_base(knowledge_base_id: int, db: Session = Depends(get_db))
     knowledge_base = knowledge_service.get_knowledge_base(db, knowledge_base_id)
     if knowledge_base is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Knowledge base not found.")
-    knowledge_service.delete_knowledge_base(db, knowledge_base)
-
+    try:
+        knowledge_service.delete_knowledge_base(db, knowledge_base)
+    except KnowledgeBaseIndexingError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc

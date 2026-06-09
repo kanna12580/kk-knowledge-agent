@@ -70,11 +70,40 @@
 
 ## 2026-06-09 - Phase 3 Embedding And ChromaDB
 
-状态：未开始。
+状态：已完成。
 
-计划：
+内容：
 - 封装 sentence-transformers embedding。
 - 封装 ChromaDB collection 初始化。
 - 上传文档后为 chunks 生成向量并写入 ChromaDB。
 - 将 Chroma vector id 回写到 `document_chunks.vector_id`。
 - 删除知识库/文档时同步删除向量。
+- 新增 `VECTOR_INDEX_ENABLED` 配置，真实运行默认启用，测试环境默认关闭。
+- 向量写入失败时回滚文档创建，并返回明确错误。
+
+验证：
+- 命令：`python -m pytest`
+- 结果：`24 passed, 1 warning`
+- warning 来源：FastAPI/Starlette TestClient 关于 `httpx` 依赖版本的提示，不影响阶段三功能。
+
+测试策略：
+- 阶段三测试使用 fake embedding 和 fake Chroma client，验证业务编排、metadata、vector_id 回写和删除同步。
+- 未在测试中下载真实 embedding 模型，避免阶段开发被大模型依赖拖慢。
+
+环境说明：
+- 当前本机尚未安装 `chromadb` 和 `sentence-transformers`。
+- 若要真实跑向量化上传，需要先安装完整 `backend/requirements.txt`。
+
+遗留到阶段四：
+- Chroma query 检索接口尚未实现。
+- 需要基于 query embedding 和 `knowledge_base_id` metadata 过滤实现语义搜索。
+
+## 2026-06-09 - Phase 4 Semantic Search And Streaming
+
+状态：未开始。
+
+计划：
+- 实现 `POST /api/search`。
+- query embedding 后按 `knowledge_base_id` 过滤 Chroma。
+- 返回 `document_id`、`title`、`chunk`、`score`。
+- 实现 `POST /api/search/stream` SSE 流式接口。

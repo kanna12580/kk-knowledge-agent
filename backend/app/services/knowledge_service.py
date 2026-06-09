@@ -1,8 +1,14 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db.models import KnowledgeBase
 from app.db.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate
+from app.vector import chroma_client
+
+
+class KnowledgeBaseIndexingError(RuntimeError):
+    pass
 
 
 def create_knowledge_base(db: Session, payload: KnowledgeBaseCreate) -> KnowledgeBase:
@@ -45,6 +51,12 @@ def update_knowledge_base(
 
 
 def delete_knowledge_base(db: Session, knowledge_base: KnowledgeBase) -> None:
+    if get_settings().vector_index_enabled:
+        try:
+            chroma_client.delete_by_knowledge_base_id(knowledge_base.id)
+        except Exception as exc:
+            raise KnowledgeBaseIndexingError("Failed to delete knowledge base vectors.") from exc
+
     db.delete(knowledge_base)
     db.commit()
 
