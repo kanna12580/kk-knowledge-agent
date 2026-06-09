@@ -539,3 +539,21 @@ Validation notes:
 5. Restart Codex Desktop or open a new session, then approve the MCP tool call to complete live querying.
 6. The Python command must point to the interpreter with the `mcp` SDK installed. This machine uses Python312.
 ```
+
+Live validation result after restart:
+
+```text
+Tool: mcp__kk_knowledge.search_knowledge_base
+Input: knowledge_base_id=2, query=Codex MCP 查询知识库, top_k=3
+Result title: MCP 验证文档
+Result score: 0.6619
+```
+
+Important local-call notes:
+
+```text
+1. If MCP returns Bad Gateway but Backend /api/search works directly, check whether the MCP HTTP client is using proxy environment variables.
+2. The project sets httpx.AsyncClient(..., trust_env=False) in mcp-server/tools.py so local Backend calls do not go through system/Codex proxy settings.
+3. After changing MCP Server code or config, restart Codex Desktop or open a fresh session; already running MCP child processes do not hot reload code changes.
+4. Prefer BACKEND_API_URL=http://127.0.0.1:8000 instead of localhost to avoid local name resolution differences.
+```

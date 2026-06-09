@@ -274,6 +274,31 @@
 - 当前已运行的 Codex MCP 子进程不会热加载代码变更。
 - 重启 Codex Desktop 或新开可重新初始化 MCP Server 的会话后，`kk_knowledge` 会加载本次修复。
 
+## 2026-06-09 - Codex MCP Live Query Passed
+
+状态：已完成。
+
+内容：
+- 重启 Codex Desktop 后，当前会话成功加载 `mcp__kk_knowledge` 工具组。
+- 使用真实 MCP 工具调用 `search_knowledge_base` 查询本地知识库。
+- 使用真实 MCP 工具调用 `list_knowledge_bases` 查询知识库列表。
+
+验证：
+- 调用：`mcp__kk_knowledge.search_knowledge_base`
+- 参数：`knowledge_base_id=2`，`query="Codex MCP 查询知识库"`，`top_k=3`
+- 结果：成功命中 `MCP 验证文档`
+- 返回片段：
+  - `Codex 可以通过 MCP Server 调用 search_knowledge_base 工具，查询 kk knowledge agent 知识库中的外部资料。这个验证文本用于确认 MCP 查询链路可用。`
+- 分数：`0.6619`
+
+知识库列表验证：
+- `Codex MCP 验证库`
+- `现代文学`
+
+结论：
+- Codex 已可以通过本项目 MCP Server 查询本地知识库内容。
+- MCP Server -> Backend API -> SQLite/ChromaDB/Embedding 检索链路端到端可用。
+
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 
 状态：已完成。
