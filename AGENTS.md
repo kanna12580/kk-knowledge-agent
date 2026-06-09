@@ -2,6 +2,8 @@
 
 本文件是 `kk-knowledge-agent` 的开发导航，供 Codex/Agent 在后续任务中优先读取。项目目标是构建轻量级知识库系统：Backend 负责知识库、文档、分块、向量化与检索；Frontend 提供演示页面；MCP Server 将检索能力封装为 Agent 工具。
 
+如果本文件的阶段计划不足以判断产品边界、接口细节、演示路径或验收口径，优先参考 `docs/PROJECT_HANDOFF.md`。
+
 ## 全局原则
 
 - Backend 是唯一业务核心，Frontend 和 MCP Server 不重复实现检索逻辑。
