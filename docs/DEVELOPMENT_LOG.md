@@ -222,6 +222,58 @@
 - 基础 MVP 已完成，没有发现阻塞阶段 7 交付文档整理的开发遗漏。
 - 后续主线可进入 README/API 示例/面试演示流程完善，或进入 RAG/LLM 优化方向。
 
+## 2026-06-09 - Codex MCP Install Validation
+
+状态：已完成安装配置，真实 Codex 调用需重启或新会话后批准工具调用。
+
+内容：
+- 将本项目 MCP Server 注册到本机 Codex 配置：`C:\Users\16327\.codex\config.toml`。
+- MCP Server 名称：`kk_knowledge`。
+- 启动命令指向 `mcp-server/server.py`。
+- 环境变量固定为 `BACKEND_API_URL=http://127.0.0.1:8000`，避免 `localhost` 解析差异。
+- 初次配置使用 Python39 时，Codex MCP 握手失败；原因是该解释器在当前环境中拒绝访问，且 MCP SDK 实际安装在 Python312。
+- 已修正为：`C:\Users\16327\AppData\Local\Programs\Python\Python312\python.exe`。
+
+验证：
+- Backend 直接查询成功：
+  - `GET /api/knowledge-bases` 返回验证知识库。
+  - `POST /api/search` 使用 `knowledge_base_id=2` 能命中 `MCP 验证文档`。
+- `codex mcp list` 已识别 `kk_knowledge`，状态为 enabled。
+- 新的 `codex exec` 进程已能发现并发起 `kk_knowledge/list_knowledge_bases` MCP tool call。
+- 非交互 `codex exec` 中 MCP tool call 被标记为 `user cancelled`，因此没有继续执行 `search_knowledge_base`。
+
+结论：
+- MCP Server 已安装进 Codex 配置，且真实 Codex 进程已能看到并尝试调用工具。
+- 当前桌面会话不会热加载新 MCP 工具；需要重启 Codex Desktop 或新开会话。
+- 在新会话首次调用时，需要批准 MCP tool call，之后即可让 Codex 查询知识库内容。
+
+## 2026-06-09 - Codex MCP Proxy Fix
+
+状态：已完成代码修复，需重启 Codex 以重新加载 MCP Server 进程。
+
+问题：
+- 重启 Codex 后，`mcp__kk_knowledge` 工具已在当前会话暴露。
+- 真实调用 `search_knowledge_base` 时返回 `Bad Gateway`。
+- 同一查询直接访问 Backend `POST /api/search` 成功，说明 Backend、数据库、Chroma 和 embedding 检索链路正常。
+
+原因：
+- MCP Server 里的 `httpx.AsyncClient` 默认会继承进程环境中的代理配置。
+- Codex 启动 MCP Server 时可能带有代理相关环境，导致访问本地 `127.0.0.1:8000` 被错误转发到代理，从而返回 `Bad Gateway`。
+
+修复：
+- 在 `mcp-server/tools.py` 中创建 Backend HTTP client 时设置 `trust_env=False`。
+- MCP Server 调 Backend 时不再继承外部代理环境，确保本地知识库服务直连。
+- MCP 测试中补充断言，防止该配置被回退。
+
+验证：
+- `python -m pytest mcp-server/tests` -> `7 passed`
+- `python -m pytest` -> `37 passed, 1 warning`
+- 直接 Backend 查询 `knowledge_base_id=2` 可命中 `MCP 验证文档`。
+
+说明：
+- 当前已运行的 Codex MCP 子进程不会热加载代码变更。
+- 重启 Codex Desktop 或新开可重新初始化 MCP Server 的会话后，`kk_knowledge` 会加载本次修复。
+
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 
 状态：已完成。

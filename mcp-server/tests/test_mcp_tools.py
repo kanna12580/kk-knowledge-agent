@@ -14,10 +14,12 @@ spec.loader.exec_module(tools)
 
 class FakeAsyncClient:
     transport: httpx.MockTransport | None = None
+    last_trust_env: bool | None = None
 
     def __init__(self, *args, **kwargs):
         self.base_url = kwargs.get("base_url")
         self.timeout = kwargs.get("timeout")
+        self.__class__.last_trust_env = kwargs.get("trust_env")
 
     async def __aenter__(self):
         return self
@@ -27,6 +29,7 @@ class FakeAsyncClient:
 
     async def request(self, method: str, path: str, **kwargs):
         assert self.transport is not None
+        assert self.last_trust_env is False
         request = httpx.Request(method, f"http://backend.test{path}", json=kwargs.get("json"))
         return await self.transport.handle_async_request(request)
 

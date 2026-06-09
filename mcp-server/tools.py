@@ -88,7 +88,11 @@ async def add_text_document(knowledge_base_id: int, title: str, content: str) ->
 
 async def _request(method: str, path: str, **kwargs: Any) -> dict[str, Any]:
     try:
-        async with httpx.AsyncClient(base_url=backend_api_url(), timeout=backend_timeout_seconds()) as client:
+        async with httpx.AsyncClient(
+            base_url=backend_api_url(),
+            timeout=backend_timeout_seconds(),
+            trust_env=False,
+        ) as client:
             response = await client.request(method, path, **kwargs)
     except httpx.TimeoutException:
         return {"error": "Backend request timed out."}
@@ -124,4 +128,3 @@ def _error(message: str, query: str | None = None) -> dict[str, Any]:
         payload["query"] = query
         payload["results"] = []
     return payload
-

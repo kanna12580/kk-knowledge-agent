@@ -508,3 +508,34 @@ BACKEND_TIMEOUT_SECONDS=30
 6. 增加 Docker Compose 一键部署
 ```
 
+## 14. Codex MCP Local Install Note
+
+Codex MCP config path on this machine:
+
+```text
+C:\Users\16327\.codex\config.toml
+```
+
+Installed server config:
+
+```toml
+[mcp_servers.kk_knowledge]
+command = 'C:\Users\16327\AppData\Local\Programs\Python\Python312\python.exe'
+args = ['C:\Users\16327\Documents\kk knowledge agent skill\mcp-server\server.py']
+startup_timeout_sec = 120
+
+[mcp_servers.kk_knowledge.env]
+BACKEND_API_URL = 'http://127.0.0.1:8000'
+BACKEND_TIMEOUT_SECONDS = '30'
+```
+
+Validation notes:
+
+```text
+1. Backend must be running at http://127.0.0.1:8000 before Codex calls the MCP tools.
+2. Codex CLI recognizes kk_knowledge via `codex mcp list`.
+3. A new Codex process can see the tool and starts `kk_knowledge/list_knowledge_bases`.
+4. Non-interactive `codex exec` may cancel MCP tool calls because no user approval UI is available.
+5. Restart Codex Desktop or open a new session, then approve the MCP tool call to complete live querying.
+6. The Python command must point to the interpreter with the `mcp` SDK installed. This machine uses Python312.
+```
