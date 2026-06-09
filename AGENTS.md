@@ -4,11 +4,16 @@
 
 如果本文件的阶段计划不足以判断产品边界、接口细节、演示路径或验收口径，优先参考 `docs/PROJECT_HANDOFF.md`。
 
+项目后续演进有两条主线：
+- RAG 应用：Backend 检索 chunks 后接入 LLM，生成带引用依据的回答；此时流式接口主要用于逐步返回 LLM 生成内容。
+- MCP 外接知识库：MCP Server 将 Backend 检索能力暴露为 Agent 工具，Codex/Claude Code/OpenClaw 等 Agent 可调用外部知识库补充上下文。
+
 ## 全局原则
 
 - Backend 是唯一业务核心，Frontend 和 MCP Server 不重复实现检索逻辑。
 - SQLite 保存业务数据，ChromaDB 保存 chunk embedding。
 - 删除知识库或文档时，必须同步删除对应 Chroma 向量。
+- 同一个 Backend 检索核心要同时服务普通用户路径和 Agent 工具路径。
 - 优先交付可演示 MVP，再补测试和部署优化项。
 - 中文语义检索默认使用 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`。
 - API 错误必须清晰：空 query、知识库不存在、空文档、非 txt、文件过大、embedding/向量库/检索失败。
@@ -185,6 +190,7 @@ MCP 测试：
 
 文档：
 - README 增加启动方式、API 示例、MCP 配置、面试演示流程、后续优化方向。
+- 后续优化必须保留两条方向：接入 LLM 做 RAG 流式回答；封装 MCP Server 做 Agent 外接知识库。
 
 MVP 验收标准：
 - 可以创建、查询、更新、删除知识库。

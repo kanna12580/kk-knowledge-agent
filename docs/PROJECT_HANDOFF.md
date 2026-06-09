@@ -87,6 +87,20 @@ Backend API
 5. 删除知识库/文档时，需要同步删除对应向量数据。
 ```
 
+长期产品方向：
+
+```text
+1. 作为 RAG 应用：
+   Backend 负责检索相关 chunks，再接入 LLM 生成带依据的回答。
+   此时流式接口主要用于逐步返回 LLM 生成内容，而不只是流式返回检索结果。
+
+2. 作为 Agent 外接知识库：
+   MCP Server 将 Backend 检索能力封装为标准 Tool。
+   Codex、Claude Code、OpenClaw 或 Hermas Agent 可通过 MCP 调用知识库，获得外部上下文。
+
+3. 同一个 Backend 检索核心需要同时服务用户前端路径和 Agent 工具路径。
+```
+
 ---
 
 ## 3. 后端模块
@@ -792,6 +806,9 @@ MCP Server 是 Agent 适配层，把知识库查询能力封装成标准工具�
 8. 增加 Docker Compose 一键部署
 9. 增加异步任务队列处理大文件
 10. 增加检索命中引用和高亮
+11. 接入 LLM，将检索结果升级为 RAG 回答
+12. 将流式搜索优化为流式回答生成
+13. 完善 MCP Server，使 Codex/Claude Code 等 Agent 可将本项目作为外接知识库
 ```
 
 ---
@@ -816,4 +833,3 @@ MCP Server 是 Agent 适配层，把知识库查询能力封装成标准工具�
 ```
 
 这份架构和交付范围非常适合技术面试：完整、可讲、可演示，也不会因为做得太大导致失控。
-

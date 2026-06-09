@@ -172,6 +172,36 @@
 - 浏览器会话在原生 confirm 验证时触发安全拦截，后续不再继续使用该会话硬测同一地址。
 - 已将前端原生 `window.confirm` 改为行内二次确认，避免浏览器弹窗阻塞演示和自动化验证。
 
+## 2026-06-09 - Phase 6 MCP Server
+
+状态：已完成。
+
+内容：
+- 新增 MCP Server 入口：`mcp-server/server.py`。
+- 新增 MCP 工具实现：`mcp-server/tools.py`。
+- 必做工具：`search_knowledge_base`。
+- 加分工具：`list_knowledge_bases`、`add_text_document`。
+- MCP Server 只通过 HTTP 调用 Backend API，不重复实现检索逻辑。
+- Backend 地址从 `BACKEND_API_URL` 读取，默认 `http://localhost:8000`。
+- Backend 超时从 `BACKEND_TIMEOUT_SECONDS` 读取，默认 10 秒。
+- 错误路径返回结构化错误：空 query、404、后端不可用、超时、空结果。
+
+验证：
+- 安装 `mcp-server/requirements.txt` 成功。
+- 命令：`python -m pytest`
+- 结果：`37 passed, 1 warning`
+- 命令：导入 `mcp-server/server.py`
+- 结果：`FastMCP` 实例可正常加载。
+
+测试覆盖：
+- `search_knowledge_base` 正常返回结果。
+- query 为空返回错误。
+- 后端 404 返回错误。
+- 后端超时返回错误。
+- 空检索结果返回提示。
+- `list_knowledge_bases` 正常返回列表。
+- `add_text_document` 正常添加文本。
+
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 
 状态：已完成。
