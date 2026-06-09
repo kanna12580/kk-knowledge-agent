@@ -125,13 +125,32 @@
 
 ## 2026-06-09 - Phase 5 Frontend Demo
 
-状态：未开始。
+状态：已完成。
 
-计划：
+内容：
 - 实现知识库列表和创建。
 - 实现文本上传和 txt 上传。
 - 实现搜索框和流式结果展示。
 - 使用 `fetch + ReadableStream` 处理 POST SSE。
+- 新增 React/Vite 单页 Demo：左侧知识库，中间文档上传，右侧搜索和流式结果。
+- 新增前端 API client：knowledge、documents、search。
+- 新增工具型响应式布局和基础状态提示。
+- 安装前端依赖并提交 `package-lock.json`。
+- 扩展 `backend/.env.example` 的 CORS 示例，加入 `http://127.0.0.1:5173`。
+
+验证：
+- 命令：`npm run build`
+- 结果：TypeScript 和 Vite build 通过。
+- 浏览器验证：`http://localhost:5173`
+- 创建知识库成功。
+- 上传文本《春》成功。
+- 普通搜索 `春天` 成功返回《春》。
+- 流式搜索 `春天` 成功展示 `delta` 和 `result` 事件。
+
+验证中发现并修复：
+- `127.0.0.1:5173` 打开前端时会触发 CORS，因为后端默认只允许 `localhost:5173`；已在 `.env.example` 中补充 127.0.0.1。
+- 知识库创建后，`event.currentTarget` 在 await 后为空导致 form reset 控制台报错；已改为 await 前保存 form 引用。
+- 流式按钮最初没有触发流式搜索，因为 `FormData(form)` 不能可靠读取 submit button 的 intent；已改用 `SubmitEvent.submitter`。
 
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 

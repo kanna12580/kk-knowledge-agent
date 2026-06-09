@@ -10,6 +10,7 @@ venv/
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
 npm-debug.log*
 pnpm-lock.yaml
 yarn.lock
@@ -26,4 +27,3 @@ mcp-server/.env
 Thumbs.db
 .idea/
 .vscode/
-
