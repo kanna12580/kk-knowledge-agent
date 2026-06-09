@@ -100,10 +100,35 @@
 
 ## 2026-06-09 - Phase 4 Semantic Search And Streaming
 
-状态：未开始。
+状态：已完成。
 
-计划：
+内容：
 - 实现 `POST /api/search`。
 - query embedding 后按 `knowledge_base_id` 过滤 Chroma。
 - 返回 `document_id`、`title`、`chunk`、`score`。
 - 实现 `POST /api/search/stream` SSE 流式接口。
+- 新增检索结果 schema 和 Chroma query 封装。
+- 普通搜索失败返回明确 `500 Failed to search knowledge base.`。
+- 流式搜索按 `start`、`delta`、`result`、`error`、`done` 事件输出。
+
+验证：
+- 命令：`python -m pytest`
+- 结果：`30 passed, 1 warning`
+- warning 来源：FastAPI/Starlette TestClient 关于 `httpx` 依赖版本的提示，不影响阶段四功能。
+
+测试策略：
+- 阶段四测试继续使用 fake embedding 和 fake Chroma query 结果。
+- 覆盖普通搜索成功、空 query、知识库不存在、检索失败、流式成功和流式错误事件。
+
+遗留到真实联调：
+- 需要安装完整 `backend/requirements.txt` 后，用真实 ChromaDB 和 embedding 模型验证《春》《故乡》的检索效果。
+
+## 2026-06-09 - Phase 5 Frontend Demo
+
+状态：未开始。
+
+计划：
+- 实现知识库列表和创建。
+- 实现文本上传和 txt 上传。
+- 实现搜索框和流式结果展示。
+- 使用 `fetch + ReadableStream` 处理 POST SSE。

@@ -55,6 +55,22 @@ class ChromaVectorStore:
     def delete_by_knowledge_base_id(self, knowledge_base_id: int) -> None:
         self._delete_where({"knowledge_base_id": knowledge_base_id})
 
+    def query_chunks(
+        self,
+        query_embedding: list[float],
+        knowledge_base_id: int,
+        top_k: int,
+    ) -> dict[str, Any]:
+        try:
+            return self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+                where={"knowledge_base_id": knowledge_base_id},
+                include=["documents", "metadatas", "distances"],
+            )
+        except Exception as exc:
+            raise VectorStoreError("Failed to query vectors from ChromaDB.") from exc
+
     def _delete_where(self, where: dict[str, Any]) -> None:
         try:
             self.collection.delete(where=where)
@@ -86,4 +102,8 @@ def delete_by_document_id(document_id: int) -> None:
 
 def delete_by_knowledge_base_id(knowledge_base_id: int) -> None:
     get_vector_store().delete_by_knowledge_base_id(knowledge_base_id)
+
+
+def query_chunks(query_embedding: list[float], knowledge_base_id: int, top_k: int) -> dict[str, Any]:
+    return get_vector_store().query_chunks(query_embedding, knowledge_base_id, top_k)
 

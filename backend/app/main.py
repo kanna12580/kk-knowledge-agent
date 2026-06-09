@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.document_routes import router as document_router
 from app.api.knowledge_routes import router as knowledge_router
+from app.api.search_routes import router as search_router
 from app.config import get_settings
 from app.db import models
 from app.db.database import Base, engine
@@ -31,6 +32,7 @@ def create_app(create_tables_on_startup: bool = True) -> FastAPI:
 
     app.include_router(knowledge_router, prefix="/api")
     app.include_router(document_router, prefix="/api")
+    app.include_router(search_router, prefix="/api")
 
     @app.get("/health")
     def health_check() -> dict[str, str]:
