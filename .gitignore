@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+pnpm-lock.yaml
+yarn.lock
+
+# Local data
+data/
+backend/data/
+backend/chroma/
+backend/*.db
+mcp-server/.env
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
