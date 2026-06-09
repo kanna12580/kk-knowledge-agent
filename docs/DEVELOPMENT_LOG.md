@@ -320,6 +320,24 @@
 - 该分页 UI 保持 Demo 轻量，不引入复杂表格或后台菜单。
 - 后续如数据量增大，可继续扩展为可配置 page size 或跳转页码。
 
+## 2026-06-09 - README Demo Screenshots
+
+状态：已完成。
+
+内容：
+- README 新增 Demo Screenshots 区域。
+- 展示前端知识库/文档工作流截图。
+- 展示 Codex MCP 知识库工具调用截图。
+
+文件：
+- `demo/前端1.png`
+- `demo/前端2.png`
+- `demo/mcp1.png`
+- `demo/mcp2.png`
+
+说明：
+- `docs/INTERVIEW_IMPLEMENTATION.md` 当前为未跟踪文件，本次未纳入提交。
+
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 
 状态：已完成。

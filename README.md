@@ -36,6 +36,20 @@ examples/      Demo txt documents
 AGENTS.md      Phased development guide for Codex/Agent
 ```
 
+## Demo Screenshots
+
+Frontend knowledge base and document workflow:
+
+![Frontend demo 1](demo/前端1.png)
+
+![Frontend demo 2](demo/前端2.png)
+
+Codex MCP knowledge base tool call:
+
+![MCP demo 1](demo/mcp1.png)
+
+![MCP demo 2](demo/mcp2.png)
+
 ## Local Setup
 
 ### Backend
