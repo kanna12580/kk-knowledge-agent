@@ -202,6 +202,26 @@
 - `list_knowledge_bases` 正常返回列表。
 - `add_text_document` 正常添加文本。
 
+## 2026-06-09 - Base MVP Closure And Local Installation Docs
+
+状态：已完成。
+
+内容：
+- 对照 `AGENTS.md` 和交接文档检查阶段 0-6 基础开发完成情况。
+- 新增本地安装部署文档：`docs/LOCAL_INSTALLATION.md`。
+- 文档覆盖 Backend、Frontend、本地真实后端验证、MCP Server 安装、MCP 客户端配置、测试和常见问题。
+- README 增加本地安装部署文档入口。
+
+验证：
+- 命令：`python -m pytest`
+- 结果：`37 passed, 1 warning`
+- 命令：`npm run build`
+- 结果：TypeScript 和 Vite build 通过。
+
+结论：
+- 基础 MVP 已完成，没有发现阻塞阶段 7 交付文档整理的开发遗漏。
+- 后续主线可进入 README/API 示例/面试演示流程完善，或进入 RAG/LLM 优化方向。
+
 ## 2026-06-09 - Pre-Phase 5 Real Backend Validation
 
 状态：已完成。

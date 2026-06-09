@@ -108,6 +108,10 @@ MCP config example:
 
 Follow [AGENTS.md](AGENTS.md) for the phased implementation plan.
 
+## Local Installation
+
+See [docs/LOCAL_INSTALLATION.md](docs/LOCAL_INSTALLATION.md) for detailed Backend, Frontend, and MCP Server setup.
+
 ## Future Improvements
 
 - Add Docker Compose for one-command local deployment.
